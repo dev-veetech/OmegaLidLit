@@ -21,6 +21,10 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
       // Navigate back to home screen
       onTabPress('home');
       navigation.navigate('Home' as never);
+    } else if (tabKey === 'explore') {
+      // When explore is pressed, navigate to explore screen
+      onTabPress('explore');
+      navigation.navigate('Explore' as never);
     } else if (tabKey === 'bag') {
       // When bag is pressed, navigate to shop and switch to bag tab
       onTabPress('bag');
@@ -28,6 +32,10 @@ export const BottomNavBar: React.FC<BottomNavBarProps> = ({
     } else if (tabKey === 'create') {
       // When create is pressed, show the create token drawer
       onCreatePress();
+    } else if (tabKey === 'you') {
+      // When you is pressed, navigate to profile screen
+      onTabPress('you');
+      navigation.navigate('Profile' as never);
     } else {
       onTabPress(tabKey);
     }

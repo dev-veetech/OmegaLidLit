@@ -1,120 +1,114 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+} from 'react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 
-const { width } = Dimensions.get('window');
+type RootStackParamList = {
+  OrderSummary: {
+    tokenName: string;
+    nfcEnabled: boolean;
+    nfcLink?: string;
+  };
+  OrderConfirmation: undefined;
+};
+
+type OrderSummaryScreenRouteProp = RouteProp<RootStackParamList, 'OrderSummary'>;
 
 export const OrderSummaryScreen: React.FC = () => {
   const navigation = useNavigation();
+  const route = useRoute<OrderSummaryScreenRouteProp>();
+  const { tokenName, nfcEnabled, nfcLink } = route.params;
 
-  const orderItems = [
-    {
-      id: '1',
-      name: 'Custom Hat',
-      details: 'Size: M | Color: Black',
-      price: '$59.99',
-      quantity: 'Qty: 1',
-      image: require('../../assets/hat.png'),
-    },
-    {
-      id: '2',
-      name: 'Cavaliers Starter Token',
-      details: 'Starter Token',
-      price: 'Free',
-      quantity: 'Qty: 1',
-      image: require('../../assets/ClevelandCavaliersToken.png'),
-    },
-    {
-      id: '3',
-      name: 'Custom Token',
-      details: 'Create your custom token in the app after purchase.',
-      price: 'Free',
-      quantity: 'Qty: 1',
-      image: null, // Placeholder for custom token
-    },
-  ];
+  const handleFreeCheckout = () => {
+    console.log('Free checkout completed');
+    // Navigate to order confirmation screen
+    navigation.navigate('OrderConfirmation');
+  };
 
-  const handleSignIn = () => {
-    // Navigate to Login screen
-    navigation.navigate('Login' as never);
+  const handleEditShipping = () => {
+    console.log('Edit shipping address');
+    // Navigate to shipping address editing
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header with Back Button */}
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backArrow}>←</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.backButton}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Order Summary</Text>
+        <Text style={styles.title}>Order Summary</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Order Items Section */}
+        {/* Order Items */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Order Items</Text>
-          
-          {orderItems.map((item) => (
-            <View key={item.id} style={styles.orderItem}>
-              <View style={styles.itemImageContainer}>
-                {item.image ? (
-                  <Image
-                    source={item.image}
-                    style={styles.itemImage}
-                    resizeMode="contain"
-                  />
-                ) : (
-                  <View style={styles.placeholderImage}>
-                    <Text style={styles.placeholderText}>+</Text>
-                  </View>
-                )}
-              </View>
-              
-              <View style={styles.itemDetails}>
-                <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemDescription}>{item.details}</Text>
-              </View>
-              
-              <View style={styles.itemPricing}>
-                <Text style={styles.itemPrice}>{item.price}</Text>
-                <Text style={styles.itemQuantity}>{item.quantity}</Text>
-              </View>
+          <View style={styles.orderItem}>
+            <View style={styles.itemImage} />
+            <View style={styles.itemDetails}>
+              <Text style={styles.itemName}>Custom Token</Text>
+              <Text style={styles.itemSubtext}>{tokenName}</Text>
             </View>
-          ))}
-        </View>
-
-        {/* Order Summary Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Order Summary</Text>
-          
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Subtotal:</Text>
-              <Text style={styles.summaryValue}>$59.99</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>3-Day Shipping:</Text>
-              <Text style={styles.summaryValue}>Free</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Tax:</Text>
-              <Text style={styles.summaryValue}>--</Text>
-            </View>
-            <View style={[styles.summaryRow, styles.totalRow]}>
-              <Text style={styles.totalLabel}>Total:</Text>
-              <Text style={styles.totalValue}>$59.99</Text>
+            <View style={styles.itemPrice}>
+              <Text style={styles.priceText}>Free</Text>
+              <Text style={styles.quantityText}>Qty: 1</Text>
             </View>
           </View>
         </View>
 
-        {/* Bottom Spacing for Sign In Button */}
+        {/* Order Summary */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Order Summary</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Subtotal:</Text>
+            <Text style={styles.summaryValue}>--</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>5-Day Shipping:</Text>
+            <Text style={styles.summaryValue}>Free</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Tax:</Text>
+            <Text style={styles.summaryValue}>--</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.summaryRow}>
+            <Text style={styles.totalLabel}>Total:</Text>
+            <Text style={styles.totalValue}>$0.00</Text>
+          </View>
+        </View>
+
+        {/* Ship to */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ship to</Text>
+          <TouchableOpacity style={styles.shippingCard} onPress={handleEditShipping}>
+            <View style={styles.shippingInfo}>
+              <Text style={styles.shippingName}>John Appleseed</Text>
+              <Text style={styles.shippingAddress}>27 Fredrick Butte Rd</Text>
+              <Text style={styles.shippingCity}>Brothers OR 97712</Text>
+              <Text style={styles.shippingCountry}>United States</Text>
+            </View>
+            <Text style={styles.editArrow}>›</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Bottom Spacing */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
 
-      {/* Sign In Button */}
-      <View style={styles.signInButtonContainer}>
-        <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
-          <Text style={styles.signInButtonText}>Sign in</Text>
+      {/* Free Checkout Button */}
+      <View style={styles.checkoutButtonContainer}>
+        <TouchableOpacity style={styles.checkoutButton} onPress={handleFreeCheckout}>
+          <Text style={styles.checkoutButtonText}>Free Checkout</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -124,114 +118,84 @@ export const OrderSummaryScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f8f8f8',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
-    position: 'relative',
   },
   backButton: {
-    position: 'absolute',
-    left: 20,
-    padding: 8,
-  },
-  backArrow: {
     fontSize: 24,
-    color: '#000',
-    fontWeight: 'bold',
+    color: '#333',
   },
-  headerTitle: {
+  title: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: '600',
+    color: '#333',
+  },
+  headerSpacer: {
+    width: 24,
   },
   scrollView: {
     flex: 1,
   },
   section: {
-    marginBottom: 24,
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    marginTop: 20,
+    borderRadius: 12,
+    padding: 20,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333',
     marginBottom: 16,
-    paddingHorizontal: 20,
   },
   orderItem: {
     flexDirection: 'row',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 20,
-    marginBottom: 12,
     alignItems: 'center',
-  },
-  itemImageContainer: {
-    width: 60,
-    height: 60,
-    marginRight: 16,
   },
   itemImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 8,
-  },
-  placeholderImage: {
-    width: '100%',
-    height: '100%',
+    width: 60,
+    height: 60,
     backgroundColor: '#fff',
     borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#ddd',
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderText: {
-    fontSize: 24,
-    color: '#999',
-    fontWeight: 'bold',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    marginRight: 16,
   },
   itemDetails: {
     flex: 1,
-    marginRight: 16,
   },
   itemName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: '#333',
     marginBottom: 4,
   },
-  itemDescription: {
+  itemSubtext: {
     fontSize: 14,
     color: '#666',
-    lineHeight: 18,
-  },
-  itemPricing: {
-    alignItems: 'flex-end',
   },
   itemPrice: {
+    alignItems: 'flex-end',
+  },
+  priceText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: '#333',
     marginBottom: 4,
   },
-  itemQuantity: {
+  quantityText: {
     fontSize: 14,
     color: '#666',
-  },
-  summaryCard: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 20,
-    marginHorizontal: 20,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -239,35 +203,72 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  totalRow: {
-    marginTop: 8,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
   summaryLabel: {
     fontSize: 16,
-    color: '#666',
+    color: '#333',
   },
   summaryValue: {
     fontSize: 16,
-    color: '#000',
+    color: '#333',
     fontWeight: '500',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 16,
   },
   totalLabel: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: '700',
+    color: '#333',
   },
   totalValue: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000',
+    fontWeight: '700',
+    color: '#333',
+  },
+  shippingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  shippingInfo: {
+    flex: 1,
+  },
+  shippingName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  shippingAddress: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  shippingCity: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 2,
+  },
+  shippingCountry: {
+    fontSize: 14,
+    color: '#666',
+  },
+  editArrow: {
+    fontSize: 20,
+    color: '#666',
+    fontWeight: '300',
   },
   bottomSpacing: {
     height: 100,
   },
-  signInButtonContainer: {
+  checkoutButtonContainer: {
     position: 'absolute',
     bottom: 40,
     left: 0,
@@ -275,15 +276,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
-  signInButton: {
+  checkoutButton: {
     backgroundColor: '#000',
     paddingVertical: 18,
-    paddingHorizontal: 40,
-    borderRadius: 50,
+    paddingHorizontal: 60,
+    borderRadius: 35,
     alignItems: 'center',
     minWidth: 200,
   },
-  signInButtonText: {
+  checkoutButtonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',

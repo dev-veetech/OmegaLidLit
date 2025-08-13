@@ -1,27 +1,97 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
-export const HeroSection: React.FC = () => {
+interface HeroSectionProps {
+  onShopPress: () => void;
+  onCreatePress: () => void;
+  onExplorePress: () => void;
+}
+
+export const HeroSection: React.FC<HeroSectionProps> = ({
+  onShopPress,
+  onCreatePress,
+  onExplorePress,
+}) => {
   return (
     <View style={styles.container}>
-      {/* Background Image */}
-      <Image
-        source={require('../../../assets/HeroSection.png')}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      />
-      
-      {/* Logo - Top Left */}
-      <View style={styles.logoContainer}>
-        <Text style={styles.logoText}>Omega</Text>
+      {/* Hero Image Container */}
+      <View style={styles.heroImageContainer}>
+        <Image
+          source={require('../../../assets/HeroSection.png')}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        />
+        
+        {/* Logo - Top Left */}
+        <View style={styles.logoContainer}>
+          <Text style={styles.logoText}>Omega</Text>
+        </View>
+        
+        {/* Text Overlay - Centered at Bottom */}
+        <View style={styles.textOverlay}>
+          <Text style={styles.mainSlogan}>SNAP. TAP. CREATE.</Text>
+          <Text style={styles.subSlogan}>Transform your hat into a digital canvas</Text>
+        </View>
       </View>
-      
-      {/* Text Overlay - Centered at Bottom */}
-      <View style={styles.textOverlay}>
-        <Text style={styles.mainSlogan}>SNAP. TAP. CREATE.</Text>
-        <Text style={styles.subSlogan}>Transform your hat into a digital canvas</Text>
+
+      {/* Navigation Sections - Full Width Buttons */}
+      <View style={styles.navigationContainer}>
+        <TouchableOpacity style={styles.navButton} onPress={onShopPress}>
+          <LinearGradient
+            colors={['#191919', '#ffffff']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradientContainer}
+          >
+            <View style={styles.navContent}>
+              <Text style={styles.navTitle}>Shop</Text>
+              <Image
+                source={require('../../../assets/ShopHatIcon.png')}
+                style={styles.navImage}
+                resizeMode="cover"
+              />
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navButton} onPress={onCreatePress}>
+          <LinearGradient
+            colors={['#191919', '#ffffff']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradientContainer}
+          >
+            <View style={styles.navContent}>
+              <Text style={styles.navTitle}>Create</Text>
+              <Image
+                source={require('../../../assets/LakersToken.png')}
+                style={styles.navImage}
+                resizeMode="cover"
+              />
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navButton} onPress={onExplorePress}>
+          <LinearGradient
+            colors={['#191919', '#ffffff']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradientContainer}
+          >
+            <View style={styles.navContent}>
+              <Text style={styles.navTitle}>Explore</Text>
+              <Image
+                source={require('../../../assets/ExploreImage.png')}
+                style={styles.navImage}
+                resizeMode="cover"
+              />
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -30,13 +100,16 @@ export const HeroSection: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
+    overflow: 'hidden',
+  },
+  heroImageContainer: {
+    position: 'relative',
     height: 600,
     overflow: 'hidden',
   },
   backgroundImage: {
     width: '100%',
-    height: '100%',
-    position: 'absolute',
+    height: 600,
   },
   logoContainer: {
     position: 'absolute',
@@ -73,5 +146,38 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     opacity: 0.9,
     lineHeight: 24,
+  },
+  navigationContainer: {
+    backgroundColor: '#1a1a1a',
+    paddingVertical: 0,
+    marginTop: 0,
+  },
+  navButton: {
+    width: '100%',
+    borderBottomWidth: 1,
+    borderBottomColor: '#fff',
+  },
+  gradientContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
+  navContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  navTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  navImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
   },
 });

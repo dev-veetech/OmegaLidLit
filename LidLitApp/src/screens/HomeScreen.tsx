@@ -35,7 +35,11 @@ export const HomeScreen: React.FC = () => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        <HeroSection />
+        <HeroSection 
+          onShopPress={handleShopPress}
+          onCreatePress={handleCreatePress}
+          onExplorePress={handleExplorePress}
+        />
         
         <HowItWorksSection />
         
