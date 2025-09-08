@@ -12,24 +12,65 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 
 type RootStackParamList = {
   OrderSummary: {
-    tokenName: string;
-    nfcEnabled: boolean;
+    // For custom token flow
+    tokenName?: string;
+    nfcEnabled?: boolean;
     nfcLink?: string;
+    // For hat flow
+    isHatFlow?: boolean;
+    hatSize?: string;
+    hatColor?: string;
+    hatPrice?: number;
+    selectedTokenName?: string;
   };
   OrderConfirmation: undefined;
+  Login: undefined;
+  Checkout: {
+    hatSize: string;
+    hatPrice: number;
+    selectedTokenName: string;
+  };
 };
 
 type OrderSummaryScreenRouteProp = RouteProp<RootStackParamList, 'OrderSummary'>;
 
 export const OrderSummaryScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute<OrderSummaryScreenRouteProp>();
-  const { tokenName, nfcEnabled, nfcLink } = route.params;
+  const { 
+    tokenName, 
+    nfcEnabled, 
+    nfcLink, 
+    isHatFlow, 
+    hatSize, 
+    hatColor, 
+    hatPrice, 
+    selectedTokenName 
+  } = route.params;
+
+  // Determine if this is a hat flow or custom token flow
+  const isHatPurchase = isHatFlow === true;
+  const displayTokenName = isHatPurchase ? selectedTokenName : tokenName;
+  const displayHatPrice = hatPrice || 59.99; // Default hat price
+  const displayHatSize = hatSize || 'M';
+  const displayHatColor = hatColor || 'Black';
 
   const handleFreeCheckout = () => {
-    console.log('Free checkout completed');
-    // Navigate to order confirmation screen
-    navigation.navigate('OrderConfirmation');
+    if (isHatPurchase) {
+      console.log('Sign in pressed for hat purchase');
+      // Navigate to login screen for hat flow with parameters
+      navigation.navigate('Login', {
+        isHatFlow: true,
+        hatSize: hatSize || 'M',
+        hatColor: hatColor || 'Black',
+        hatPrice: hatPrice || 59.99,
+        selectedTokenName: selectedTokenName || 'Cavaliers Starter Token',
+      });
+    } else {
+      console.log('Free checkout completed');
+      // Navigate to order confirmation screen for custom token flow
+      navigation.navigate('OrderConfirmation');
+    }
   };
 
   const handleEditShipping = () => {
@@ -52,11 +93,63 @@ export const OrderSummaryScreen: React.FC = () => {
         {/* Order Items */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Order Items</Text>
+          
+          {/* Show Hat Item only for hat flow */}
+          {isHatPurchase && (
+            <View style={styles.orderItem}>
+              <View style={styles.itemImage}>
+                <Image
+                  source={require('../../assets/hat.png')}
+                  style={styles.itemImageContent}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.itemDetails}>
+                <Text style={styles.itemName}>Custom Hat</Text>
+                <Text style={styles.itemSubtext}>Size: {displayHatSize} | Color: {displayHatColor}</Text>
+              </View>
+              <View style={styles.itemPrice}>
+                <Text style={styles.priceText}>${displayHatPrice}</Text>
+                <Text style={styles.quantityText}>Qty: 1</Text>
+              </View>
+            </View>
+          )}
+
+          {/* Show Cavaliers Starter Token only for hat flow */}
+          {isHatPurchase && (
+            <View style={styles.orderItem}>
+              <View style={styles.itemImage}>
+                <Image
+                  source={require('../../assets/ClevelandCavaliersToken.png')}
+                  style={styles.itemImageContent}
+                  resizeMode="contain"
+                />
+              </View>
+              <View style={styles.itemDetails}>
+                <Text style={styles.itemName}>Cavaliers Starter Token</Text>
+                <Text style={styles.itemSubtext}>Starter Token</Text>
+              </View>
+              <View style={styles.itemPrice}>
+                <Text style={styles.priceText}>Free</Text>
+                <Text style={styles.quantityText}>Qty: 1</Text>
+              </View>
+            </View>
+          )}
+
+          {/* Custom Token Item */}
           <View style={styles.orderItem}>
-            <View style={styles.itemImage} />
+            <View style={styles.itemImage}>
+              {isHatPurchase ? (
+                <View style={[styles.itemImageContent, { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ddd', borderStyle: 'dashed' }]} />
+              ) : (
+                <View style={[styles.itemImageContent, { backgroundColor: '#f0f0f0', borderWidth: 1, borderColor: '#ddd', borderStyle: 'dashed' }]} />
+              )}
+            </View>
             <View style={styles.itemDetails}>
-              <Text style={styles.itemName}>Custom Token</Text>
-              <Text style={styles.itemSubtext}>{tokenName}</Text>
+              <Text style={styles.itemName}>{isHatPurchase ? 'Custom Token' : 'Custom Token'}</Text>
+              <Text style={styles.itemSubtext}>
+                {isHatPurchase ? 'Create your custom token in the app after purchase.' : 'Create your custom token in the app after purchase.'}
+              </Text>
             </View>
             <View style={styles.itemPrice}>
               <Text style={styles.priceText}>Free</Text>
@@ -70,10 +163,10 @@ export const OrderSummaryScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Order Summary</Text>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Subtotal:</Text>
-            <Text style={styles.summaryValue}>--</Text>
+            <Text style={styles.summaryValue}>${isHatPurchase ? displayHatPrice : '0.00'}</Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>5-Day Shipping:</Text>
+            <Text style={styles.summaryLabel}>3-Day Shipping:</Text>
             <Text style={styles.summaryValue}>Free</Text>
           </View>
           <View style={styles.summaryRow}>
@@ -83,7 +176,7 @@ export const OrderSummaryScreen: React.FC = () => {
           <View style={styles.divider} />
           <View style={styles.summaryRow}>
             <Text style={styles.totalLabel}>Total:</Text>
-            <Text style={styles.totalValue}>$0.00</Text>
+            <Text style={styles.totalValue}>${isHatPurchase ? displayHatPrice : '0.00'}</Text>
           </View>
         </View>
 
@@ -108,7 +201,9 @@ export const OrderSummaryScreen: React.FC = () => {
       {/* Free Checkout Button */}
       <View style={styles.checkoutButtonContainer}>
         <TouchableOpacity style={styles.checkoutButton} onPress={handleFreeCheckout}>
-          <Text style={styles.checkoutButtonText}>Free Checkout</Text>
+          <Text style={styles.checkoutButtonText}>
+            {isHatPurchase ? 'Sign in' : 'Free Checkout'}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -161,6 +256,7 @@ const styles = StyleSheet.create({
   orderItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 20,
   },
   itemImage: {
     width: 60,
@@ -170,6 +266,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
     marginRight: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  itemImageContent: {
+    width: 50,
+    height: 50,
+    borderRadius: 6,
   },
   itemDetails: {
     flex: 1,

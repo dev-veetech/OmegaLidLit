@@ -16,7 +16,14 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select photos for creating custom tokens.",
-        "NSCameraUsageDescription": "This app needs access to your camera to take photos for creating custom tokens."
+        "NSCameraUsageDescription": "This app needs access to your camera to take photos for creating custom tokens.",
+        "NSApplePayUsageDescription": "This app uses Apple Pay for secure payments.",
+        "NSApplePayMerchantIdentifier": "merchant.com.lidlit.app"
+      },
+      "entitlements": {
+        "com.apple.developer.in-app-payments": [
+          "merchant.com.lidlit.app"
+        ]
       }
     },
     "android": {
@@ -28,11 +35,26 @@
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.CAMERA"
-      ]
+        "android.permission.CAMERA",
+        "android.permission.INTERNET"
+      ],
+      "package": "com.lidlit.app"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "bundler": "metro"
+    },
+    "platforms": ["ios", "android"],
+    "plugins": [
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.lidlit.app",
+          "enableGooglePay": true
+        }
+      ]
+    ],
+    "fonts": [
+      "./fonts/RockSalt-Regular.ttf"
+    ]
   }
 }

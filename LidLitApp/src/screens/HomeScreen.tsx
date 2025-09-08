@@ -29,6 +29,11 @@ export const HomeScreen: React.FC = () => {
     // Navigate to explore screen
   };
 
+  const handleStripeTestPress = () => {
+    console.log('Stripe Test pressed');
+    navigation.navigate('StripeTest' as never);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView 
@@ -39,6 +44,7 @@ export const HomeScreen: React.FC = () => {
           onShopPress={handleShopPress}
           onCreatePress={handleCreatePress}
           onExplorePress={handleExplorePress}
+          onStripeTestPress={handleStripeTestPress}
         />
         
         <HowItWorksSection />

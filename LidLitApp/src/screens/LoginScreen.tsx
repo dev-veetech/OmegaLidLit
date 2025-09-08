@@ -1,20 +1,71 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Dimensions, Linking } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+
+type RootStackParamList = {
+  Login: {
+    isHatFlow?: boolean;
+    hatSize?: string;
+    hatColor?: string;
+    hatPrice?: number;
+    selectedTokenName?: string;
+  };
+  Checkout: {
+    hatSize: string;
+    hatColor: string;
+    hatPrice: number;
+    selectedTokenName: string;
+  };
+  OrderConfirmation: undefined;
+};
 
 const { width } = Dimensions.get('window');
 
 export const LoginScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
+  const route = useRoute<RouteProp<RootStackParamList, 'Login'>>();
+  const { isHatFlow, hatSize, hatColor, hatPrice, selectedTokenName } = route.params || {};
 
   const handleAppleSignIn = () => {
-    // Navigate to Order Confirmation screen
-    navigation.navigate('OrderConfirmation' as never);
+    if (isHatFlow) {
+      // Navigate to Checkout screen for hat purchase with correct parameters
+      navigation.navigate('Checkout', {
+        amount: hatPrice || 59.99,
+        productType: 'hat',
+        productId: 'prod_SrRzE1tKHvkVls', // Hat product ID from STRIPE_CONFIG
+        description: `Custom Hat - ${hatSize || 'M'} ${hatColor || 'Black'} with ${selectedTokenName || 'Cavaliers Starter Token'}`,
+        metadata: {
+          hatSize: hatSize || 'M',
+          hatColor: hatColor || 'Black',
+          selectedTokenName: selectedTokenName || 'Cavaliers Starter Token',
+          flow: 'hat_purchase'
+        }
+      });
+    } else {
+      // Navigate to Order Confirmation screen for custom token flow
+      navigation.navigate('OrderConfirmation');
+    }
   };
 
   const handleGoogleSignIn = () => {
-    // Navigate to Order Confirmation screen
-    navigation.navigate('OrderConfirmation' as never);
+    if (isHatFlow) {
+      // Navigate to Checkout screen for hat purchase with correct parameters
+      navigation.navigate('Checkout', {
+        amount: hatPrice || 59.99,
+        productType: 'hat',
+        productId: 'prod_SrRzE1tKHvkVls', // Hat product ID from STRIPE_CONFIG
+        description: `Custom Hat - ${hatSize || 'M'} ${hatColor || 'Black'} with ${selectedTokenName || 'Cavaliers Starter Token'}`,
+        metadata: {
+          hatSize: hatSize || 'M',
+          hatColor: hatColor || 'Black',
+          selectedTokenName: selectedTokenName || 'Cavaliers Starter Token',
+          flow: 'hat_purchase'
+        }
+      });
+    } else {
+      // Navigate to Order Confirmation screen for custom token flow
+      navigation.navigate('OrderConfirmation');
+    }
   };
 
   const handleTermsPress = () => {

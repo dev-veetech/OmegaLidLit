@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { FONTS } from '../../config/fonts';
 
 const { width } = Dimensions.get('window');
 
@@ -8,12 +9,14 @@ interface HeroSectionProps {
   onShopPress: () => void;
   onCreatePress: () => void;
   onExplorePress: () => void;
+  onStripeTestPress: () => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onShopPress,
   onCreatePress,
   onExplorePress,
+  onStripeTestPress,
 }) => {
   return (
     <View style={styles.container}>
@@ -27,7 +30,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         
         {/* Logo - Top Left */}
         <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>Omega</Text>
+          <Text style={styles.logoText}>InfiniFits</Text>
         </View>
         
         {/* Text Overlay - Centered at Bottom */}
@@ -92,6 +95,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </View>
           </LinearGradient>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navButton} onPress={onStripeTestPress}>
+          <LinearGradient
+            colors={['#FF6B6B', '#FF8E8E']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradientContainer}
+          >
+            <View style={styles.navContent}>
+              <Text style={styles.navTitle}>🧪 Test Payments</Text>
+              <Text style={styles.navSubtitle}>Stripe Integration</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -139,6 +156,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     letterSpacing: 2,
     fontStyle: 'italic',
+    fontFamily: FONTS.ROCK_SALT,
   },
   subSlogan: {
     fontSize: 18,
@@ -174,6 +192,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: '600',
+    fontFamily: FONTS.ROCK_SALT,
+  },
+  navSubtitle: {
+    color: '#fff',
+    fontSize: 14,
+    opacity: 0.8,
+    fontFamily: FONTS.ROCK_SALT,
   },
   navImage: {
     width: 60,

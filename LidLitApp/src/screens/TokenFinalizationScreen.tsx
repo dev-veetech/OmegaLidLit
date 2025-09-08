@@ -12,7 +12,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 
 export const TokenFinalizationScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const [tokenName, setTokenName] = useState('');
   const [savedTokenName, setSavedTokenName] = useState('');
   const [nfcEnabled, setNfcEnabled] = useState(false);
@@ -51,6 +51,7 @@ export const TokenFinalizationScreen: React.FC = () => {
     // Navigate to checkout
     console.log('Proceeding to checkout');
     navigation.navigate('OrderSummary', {
+      isHatFlow: false,
       tokenName: savedTokenName,
       nfcEnabled,
       nfcLink: nfcEnabled ? nfcLink : undefined,
@@ -126,14 +127,14 @@ export const TokenFinalizationScreen: React.FC = () => {
                   resizeMode="contain"
                 />
               </View>
-                             <TextInput
-                 ref={nfcInputRef}
-                 style={styles.nfcLinkInput}
-                 value={nfcLink}
-                 onChangeText={setNfcLink}
-                 placeholder="Enter your website or social media link"
-                 placeholderTextColor="#999"
-               />
+              <TextInput
+                ref={nfcInputRef}
+                style={styles.nfcLinkInput}
+                value={nfcLink}
+                onChangeText={setNfcLink}
+                placeholder="Enter your website or social media link"
+                placeholderTextColor="#999"
+              />
               <View style={styles.verticalDivider} />
               <TouchableOpacity style={styles.nfcSaveButton} onPress={handleSaveNfcLink}>
                 <Text style={styles.nfcSaveText}>Save</Text>

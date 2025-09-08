@@ -9,19 +9,34 @@ import {
   ScrollView, 
   Image,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Alert,
+  ActivityIndicator
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import aiTokenService, { TokenGenerationRequest } from '../services/aiTokenService';
+import { HatPreviewDrawer } from '../components/HatPreviewDrawer';
 
 interface Message {
   id: string;
   text: string;
   isUser: boolean;
   timestamp: Date;
+  imageUrl?: string; // Optional image URL for AI responses
+  tokenId?: string; // Optional token ID for generated tokens
 }
 
+type RootStackParamList = {
+  TokenPreview: {
+    imageUrl: string;
+    prompt: string;
+    tokenId: string;
+    isFirstToken: boolean;
+  };
+};
+
 export const AITokenGenerationScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -32,6 +47,10 @@ export const AITokenGenerationScreen: React.FC = () => {
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Hat preview drawer state
+  const [showHatPreview, setShowHatPreview] = useState(false);
+  const [selectedTokenImage, setSelectedTokenImage] = useState<string>('');
 
   const starterPrompts = [
     "Create a basketball-themed token with vibrant colors and dynamic energy",
@@ -40,6 +59,13 @@ export const AITokenGenerationScreen: React.FC = () => {
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
+
+    // Validate prompt
+    const validation = aiTokenService.validatePrompt(text.trim());
+    if (!validation.isValid) {
+      Alert.alert('Invalid Prompt', validation.error);
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -52,17 +78,56 @@ export const AITokenGenerationScreen: React.FC = () => {
     setInputText('');
     setIsLoading(true);
 
-    // Simulate AI response (replace with actual API call)
-    setTimeout(() => {
-      const aiResponse: Message = {
+    try {
+      // Generate token using Seedream-3.0
+      const generationRequest: TokenGenerationRequest = {
+        prompt: text.trim(),
+        aspect_ratio: '1:1', // Square for hat designs
+        size: 'regular',
+        width: 1024,
+        height: 1024,
+        guidance_scale: 3.0, // Higher guidance for better prompt adherence
+      };
+
+      const response = await aiTokenService.generateHatToken(text.trim());
+      
+      if (response.success && response.imageUrl) {
+        // Success - show generated token in chat
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          text: `🎨 Your custom token has been generated! I've created a unique design based on your description: "${text.trim()}". The token is optimized for hat printing with clear, bold graphics.`,
+          isUser: false,
+          timestamp: new Date(),
+          imageUrl: response.imageUrl,
+          tokenId: `token_${Date.now()}`
+        };
+        
+        setMessages(prev => [...prev, aiResponse]);
+        
+        // No automatic navigation - user can click "Preview on hat" to see it on a hat
+        
+      } else {
+        // Error occurred
+        const errorMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: `❌ Sorry, I encountered an error while generating your token: ${response.error}. Please try again with a different description.`,
+          isUser: false,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      }
+    } catch (error) {
+      console.error('Error generating token:', error);
+      const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "I'm processing your request to create a unique token. This will take a moment to generate the perfect design based on your description.",
+        text: '❌ An unexpected error occurred. Please check your internet connection and try again.',
         isUser: false,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiResponse]);
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   const handleStarterPrompt = (prompt: string) => {
@@ -106,6 +171,39 @@ export const AITokenGenerationScreen: React.FC = () => {
               ]}>
                 {message.text}
               </Text>
+              
+              {/* Display generated token image if available */}
+              {message.imageUrl && (
+                <View style={styles.tokenImageContainer}>
+                  <Image 
+                    source={{ uri: message.imageUrl }} 
+                    style={styles.tokenImage}
+                    resizeMode="contain"
+                  />
+                  <View style={styles.tokenActions}>
+                    <TouchableOpacity 
+                      style={styles.actionButton}
+                      onPress={() => {
+                        // Open hat preview drawer
+                        setSelectedTokenImage(message.imageUrl!);
+                        setShowHatPreview(true);
+                      }}
+                    >
+                      <Text style={styles.actionButtonText}>Preview on hat</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.saveButton}
+                      onPress={() => {
+                        // Save token action
+                        Alert.alert('Save Token', 'Token saved to your collection!');
+                      }}
+                    >
+                      <Text style={styles.saveButtonText}>Save for later</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+              
               <Text style={styles.timestamp}>
                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </Text>
@@ -114,6 +212,9 @@ export const AITokenGenerationScreen: React.FC = () => {
           
           {isLoading && (
             <View style={[styles.messageBubble, styles.aiMessage]}>
+              <Text style={[styles.messageText, styles.aiMessageText]}>
+                🎨 Generating your token... This may take a few moments.
+              </Text>
               <View style={styles.typingIndicator}>
                 <View style={styles.typingDot} />
                 <View style={styles.typingDot} />
@@ -170,6 +271,30 @@ export const AITokenGenerationScreen: React.FC = () => {
           </View>
         </View>
       </KeyboardAvoidingView>
+      
+      {/* Hat Preview Drawer */}
+      <HatPreviewDrawer
+        visible={showHatPreview}
+        imageUri={selectedTokenImage}
+        onClose={() => setShowHatPreview(false)}
+        onUseImage={() => {
+          setShowHatPreview(false);
+          // Navigate to checkout page
+          navigation.navigate('Checkout', {
+            amount: 25.99, // Hat price
+            productType: 'hatTokenCombo', // Hat + AI generated token combo
+            productId: 'hat_ai_token_combo', // Product identifier
+            description: 'Hat with AI Generated Token',
+            metadata: {
+              hatSize: 'M',
+              hatColor: 'Black',
+              selectedTokenName: 'AI Generated Token',
+              tokenPrice: '0',
+              hatPrice: '25.99',
+            },
+          });
+        }}
+      />
     </SafeAreaView>
   );
 };
@@ -318,5 +443,41 @@ const styles = StyleSheet.create({
   magicWandIcon: {
     width: 32,
     height: 32,
+  },
+  // Token image display styles
+  tokenImageContainer: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  tokenImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+  },
+  tokenActions: {
+    flexDirection: 'row',
+    marginTop: 12,
+    gap: 16,
+    alignItems: 'center',
+  },
+  actionButton: {
+    backgroundColor: '#00ff88',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  actionButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  saveButton: {
+    // No background styling - just text
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '400',
   },
 });

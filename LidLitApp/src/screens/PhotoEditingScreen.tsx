@@ -7,9 +7,12 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { HatPreviewDrawer } from '../components/HatPreviewDrawer';
+import backgroundRemovalService from '../services/backgroundRemovalService';
 
 type RootStackParamList = {
   PhotoEditing: { imageUri: string };
@@ -25,16 +28,36 @@ export const PhotoEditingScreen: React.FC = () => {
   const route = useRoute<PhotoEditingScreenRouteProp>();
   const { imageUri } = route.params;
   const [showHatPreview, setShowHatPreview] = useState(false);
+  const [isRemovingBackground, setIsRemovingBackground] = useState(false);
+  const [processedImageUri, setProcessedImageUri] = useState<string | null>(null);
 
-  const handleRemoveBackground = () => {
-    console.log('Remove background pressed');
-    // Implement background removal logic
+  const handleRemoveBackground = async () => {
+    try {
+      setIsRemovingBackground(true);
+      console.log('🖼️ Starting background removal...');
+      
+      const result = await backgroundRemovalService.removeBackground({
+        imageUri: imageUri,
+        threshold: 0,
+        backgroundType: 'rgba',
+        format: 'png'
+      });
+
+      if (result.success && result.imageUrl) {
+        setProcessedImageUri(result.imageUrl);
+        console.log('✅ Background removed successfully!');
+      } else {
+        Alert.alert('Error', result.error || 'Failed to remove background');
+        console.error('❌ Background removal failed:', result.error);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'An unexpected error occurred');
+      console.error('❌ Unexpected error:', error);
+    } finally {
+      setIsRemovingBackground(false);
+    }
   };
 
-  const handleCrop = () => {
-    console.log('Crop pressed');
-    // Implement cropping logic
-  };
 
   const handleRetry = () => {
     navigation.goBack();
@@ -49,10 +72,26 @@ export const PhotoEditingScreen: React.FC = () => {
   };
 
   const handleUseImage = () => {
-    // Navigate to final confirmation or order screen
+    // Navigate to checkout with proper parameters
     console.log('Use image pressed');
     setShowHatPreview(false);
-    navigation.navigate('TokenFinalization');
+    // Add a small delay to ensure modal closes properly
+    setTimeout(() => {
+      navigation.navigate('Checkout', {
+        amount: 25.99, // Hat price
+        productType: 'hatTokenCombo', // Hat + custom token combo
+        productId: 'hat_custom_token_combo', // Product identifier
+        description: 'Hat with Custom Token',
+        metadata: {
+          hatSize: 'M',
+          hatColor: 'Black',
+          selectedTokenName: 'Custom Token',
+          tokenPrice: '0',
+          hatPrice: '25.99',
+          imageUri: processedImageUri || imageUri, // Use processed image if available
+        },
+      });
+    }, 100);
   };
 
   return (
@@ -66,22 +105,29 @@ export const PhotoEditingScreen: React.FC = () => {
 
       {/* Main Photo */}
       <View style={styles.photoContainer}>
-        <Image source={{ uri: imageUri }} style={styles.photo} resizeMode="cover" />
+        <Image 
+          source={{ uri: processedImageUri || imageUri }} 
+          style={styles.photo} 
+          resizeMode="cover" 
+        />
         
         {/* Image Manipulation Overlays */}
         <View style={styles.overlayContainer}>
-          <TouchableOpacity style={styles.overlayButton} onPress={handleRemoveBackground}>
+          <TouchableOpacity 
+            style={styles.overlayButton} 
+            onPress={handleRemoveBackground}
+            disabled={isRemovingBackground}
+          >
             <View style={styles.overlayIcon}>
-              <Text style={styles.overlayIconText}>⊘</Text>
+              {isRemovingBackground ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.overlayIconText}>⊘</Text>
+              )}
             </View>
-            <Text style={styles.overlayText}>Remove BG</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.overlayButton} onPress={handleCrop}>
-            <View style={styles.overlayIcon}>
-              <Text style={styles.overlayIconText}>⊞</Text>
-            </View>
-            <Text style={styles.overlayText}>Crop</Text>
+            <Text style={styles.overlayText}>
+              {isRemovingBackground ? 'Processing...' : 'Remove BG'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -100,7 +146,7 @@ export const PhotoEditingScreen: React.FC = () => {
       {/* Hat Preview Drawer */}
       <HatPreviewDrawer
         visible={showHatPreview}
-        imageUri={imageUri}
+        imageUri={processedImageUri || imageUri}
         onClose={handleCloseHatPreview}
         onUseImage={handleUseImage}
       />
@@ -151,11 +197,13 @@ const styles = StyleSheet.create({
   overlayIcon: {
     width: 40,
     height: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   overlayIconText: {
     fontSize: 20,

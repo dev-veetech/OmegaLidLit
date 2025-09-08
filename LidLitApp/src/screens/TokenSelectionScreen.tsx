@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 const { width } = Dimensions.get('window');
 
 export const TokenSelectionScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
 
   const nbaTokens = [
@@ -44,8 +44,14 @@ export const TokenSelectionScreen: React.FC = () => {
 
   const handleNext = () => {
     if (selectedToken) {
-      // Navigate to Order Summary screen
-      navigation.navigate('OrderSummary' as never);
+      // Navigate directly to Order Summary screen with hat and token
+      navigation.navigate('OrderSummary', {
+        isHatFlow: true,
+        selectedTokenName: 'Cavaliers Starter Token',
+        hatSize: 'M',
+        hatColor: 'Black',
+        hatPrice: 59.99,
+      });
     }
   };
 

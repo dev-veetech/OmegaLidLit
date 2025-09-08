@@ -10,7 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, PanGestureHandler, PinchGestureHandler, State, simultaneousHandlers } from 'react-native-gesture-handler';
 
 interface HatPreviewDrawerProps {
   visible: boolean;
@@ -29,10 +29,26 @@ export const HatPreviewDrawer: React.FC<HatPreviewDrawerProps> = ({
 }) => {
   const backdropOpacity = useRef(new Animated.Value(0)).current;
   const drawerTranslateY = useRef(new Animated.Value(Dimensions.get('window').height)).current;
+  const tokenScale = useRef(new Animated.Value(1)).current;
   const [isDragging, setIsDragging] = useState(false);
+  const [isPinching, setIsPinching] = useState(false);
+  
+  // Gesture handler refs
+  const panGestureRef = useRef(null);
+  const pinchGestureRef = useRef(null);
+  
+  // Token size constraints
+  const MIN_SCALE = 0.5; // Minimum 50% of original size
+  const MAX_SCALE = 1.4;  // Maximum 140% of original size
+  const [currentScale, setCurrentScale] = useState(1);
 
   const handleGestureEvent = (event: any) => {
-    const { translationY, state } = event.nativeEvent;
+    const { translationY, state, numberOfPointers } = event.nativeEvent;
+    
+    // Don't handle pan gestures if pinching is active or if there are 2+ fingers
+    if (isPinching || numberOfPointers >= 2) {
+      return;
+    }
     
     if (state === State.ACTIVE) {
       setIsDragging(true);
@@ -59,11 +75,40 @@ export const HatPreviewDrawer: React.FC<HatPreviewDrawerProps> = ({
     }
   };
 
+  const handlePinchGesture = (event: any) => {
+    const { scale, state, numberOfPointers } = event.nativeEvent;
+    
+    if (state === State.BEGAN && numberOfPointers >= 2) {
+      setIsPinching(true);
+      tokenScale.setValue(currentScale);
+    } else if (state === State.ACTIVE && numberOfPointers >= 2) {
+      // Improve sensitivity: make scale changes more responsive
+      // Use a more sensitive scale calculation for better user experience
+      const sensitivityFactor = 1.2; // Makes gestures more responsive
+      const adjustedScale = 1 + (scale - 1) * sensitivityFactor;
+      const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale * adjustedScale));
+      tokenScale.setValue(newScale);
+    } else if (state === State.END || state === State.CANCELLED || state === State.FAILED) {
+      setIsPinching(false);
+      if (scale !== undefined) {
+        // Apply the same sensitivity factor to final scale
+        const sensitivityFactor = 1.2;
+        const adjustedScale = 1 + (scale - 1) * sensitivityFactor;
+        const finalScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, currentScale * adjustedScale));
+        setCurrentScale(finalScale);
+        tokenScale.setValue(finalScale);
+      }
+    }
+  };
+
   useEffect(() => {
     if (visible) {
       // Reset values
       backdropOpacity.setValue(0);
       drawerTranslateY.setValue(Dimensions.get('window').height);
+      tokenScale.setValue(1);
+      setCurrentScale(1);
+      setIsPinching(false);
       
       // Animate backdrop first (fade in)
       Animated.timing(backdropOpacity, {
@@ -109,10 +154,12 @@ export const HatPreviewDrawer: React.FC<HatPreviewDrawerProps> = ({
           
           {/* Drawer */}
           <PanGestureHandler 
+            ref={panGestureRef}
             onGestureEvent={handleGestureEvent}
             onHandlerStateChange={handleGestureEvent}
             activeOffsetY={[-5, 5]}
             activeOffsetX={[-30, 30]}
+            maxPointers={1}
           >
             <Animated.View 
               style={[
@@ -147,18 +194,35 @@ export const HatPreviewDrawer: React.FC<HatPreviewDrawerProps> = ({
           </View>
               
               {/* Hat with Image */}
-              <View style={styles.hatContainer}>
-                <Image 
-                  source={require('../../assets/hat.png')} 
-                  style={styles.hatImage} 
-                  resizeMode="contain"
-                />
-                <Image 
-                  source={{ uri: imageUri }} 
-                  style={styles.tokenImage} 
-                  resizeMode="cover"
-                />
-              </View>
+              <PinchGestureHandler
+                ref={pinchGestureRef}
+                onGestureEvent={handlePinchGesture}
+                onHandlerStateChange={handlePinchGesture}
+                minPointers={2}
+              >
+                <Animated.View style={[
+                  styles.hatContainer,
+                  isPinching && styles.pinchingActive
+                ]}>
+                  <Image 
+                    source={require('../../assets/hat.png')} 
+                    style={styles.hatImage} 
+                    resizeMode="contain"
+                  />
+                  <Animated.View style={styles.tokenContainer}>
+                    <Animated.Image 
+                      source={{ uri: imageUri }} 
+                      style={[
+                        styles.tokenImage,
+                        {
+                          transform: [{ scale: tokenScale }]
+                        }
+                      ]} 
+                      resizeMode="cover"
+                    />
+                  </Animated.View>
+                </Animated.View>
+              </PinchGestureHandler>
               
               {/* Pagination Dots */}
               <View style={styles.paginationDots}>
@@ -266,18 +330,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     position: 'relative',
+    paddingHorizontal: 40, // Add padding to expand gesture area
+    paddingVertical: 30,   // Add padding to expand gesture area
+  },
+  pinchingActive: {
+    backgroundColor: 'rgba(0, 206, 209, 0.1)', // Subtle highlight when pinching
+    borderRadius: 20,
   },
   hatImage: {
     width: 200,
     height: 150,
   },
-  tokenImage: {
+  tokenContainer: {
     position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    top: 30,
-    left: 60,
+    top: 50, // Adjusted for padding (20 + 30 padding)
+    left: '50%',
+    marginLeft: 11.5, // Moved 2px to the right (9.5 + 2 = 11.5)
+    width: 55,
+    height: 55,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tokenImage: {
+    width: 55,
+    height: 55,
+    borderRadius: 27.5,
   },
   paginationDots: {
     flexDirection: 'row',

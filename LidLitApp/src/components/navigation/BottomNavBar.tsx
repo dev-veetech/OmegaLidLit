@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { FONTS } from '../../config/fonts';
 
 interface BottomNavBarProps {
   activeTab: string;
@@ -142,9 +143,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     fontWeight: '500',
+    fontFamily: FONTS.ROCK_SALT,
   },
   activeLabel: {
     color: '#000',
     fontWeight: '600',
+    fontFamily: FONTS.ROCK_SALT,
   },
 });

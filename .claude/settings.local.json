@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npx react-native start:*)",
+      "Bash(npx expo start:*)",
+      "Bash(npx kill-port:*)",
+      "Bash(npm install:*)",
+      "Bash(dir)",
+      "Read(/C:\\Users\\PC\\Desktop\\LidLitPrototype - Copy\\backend/**)",
+      "Read(/C:\\Users\\PC\\Desktop\\LidLitPrototype - Copy\\LidLitApp\\src\\screens/**)",
+      "Read(/C:\\Users\\PC\\Desktop\\LidLitPrototype - Copy\\LidLitApp\\src\\services/**)",
+      "Read(/C:\\Users\\PC\\Desktop\\LidLitPrototype - Copy\\backend/**)",
+      "Read(/C:\\Users\\PC\\Desktop\\LidLitPrototype - Copy\\backend/**)",
+      "Read(/C:\\Users\\PC\\Desktop\\LidLitPrototype - Copy\\LidLitApp\\src\\components/**)",
+      "Read(/C:\\Users\\PC\\Desktop\\LidLitPrototype - Copy\\LidLitApp\\src\\components/**)",
+      "Read(/C:\\Users\\PC\\Desktop\\LidLitPrototype - Copy\\LidLitApp\\src\\screens/**)",
+      "Read(/C:\\Users\\PC\\Desktop\\LidLitPrototype - Copy\\LidLitApp\\src\\screens/**)"
+    ],
+    "deny": []
+  }
+}

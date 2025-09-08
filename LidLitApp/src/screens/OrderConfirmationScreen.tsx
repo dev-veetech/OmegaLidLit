@@ -6,15 +6,39 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
+  Image,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+
+type RootStackParamList = {
+  OrderConfirmation: {
+    isHatFlow?: boolean;
+    hatSize?: string;
+    hatColor?: string;
+    selectedTokenName?: string;
+  };
+  Home: undefined;
+  CreateCustomToken: undefined;
+};
+
+type OrderConfirmationScreenRouteProp = RouteProp<RootStackParamList, 'OrderConfirmation'>;
 
 export const OrderConfirmationScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
+  const route = useRoute<OrderConfirmationScreenRouteProp>();
+  const { isHatFlow, hatSize, hatColor, selectedTokenName } = route.params || {};
+
+  // Determine if this is a hat flow or custom token flow
+  const isHatPurchase = isHatFlow === true;
 
   const handleBackToHome = () => {
     console.log('Back to home pressed');
     navigation.navigate('Home');
+  };
+
+  const handleCreateCustomToken = () => {
+    console.log('Create custom token pressed');
+    navigation.navigate('CreateCustomToken');
   };
 
   return (
@@ -24,10 +48,30 @@ export const OrderConfirmationScreen: React.FC = () => {
         <View style={styles.confirmationContainer}>
           <Text style={styles.confirmationMessage}>Your order has been placed!</Text>
           
-          {/* Placeholder/Animation Area */}
-          <View style={styles.placeholderBox}>
-            <Text style={styles.placeholderIcon}>▼</Text>
-          </View>
+          {/* Ordered Items - Different display for hat vs custom token flow */}
+          {isHatPurchase ? (
+            <View style={styles.itemsContainer}>
+              <Image
+                source={require('../../assets/hat.png')}
+                style={styles.itemImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.plusSign}>+</Text>
+              <Image
+                source={require('../../assets/ClevelandCavaliersToken.png')}
+                style={styles.itemImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.plusSign}>+</Text>
+              <View style={styles.placeholderBox}>
+                <Text style={styles.placeholderIcon}>▼</Text>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.placeholderBox}>
+              <Text style={styles.placeholderIcon}>▼</Text>
+            </View>
+          )}
         </View>
 
         {/* What's Next Section */}
@@ -35,9 +79,25 @@ export const OrderConfirmationScreen: React.FC = () => {
           <Text style={styles.whatsNextTitle}>What's Next?</Text>
           
           <View style={styles.infoCard}>
-            <Text style={styles.bulletPoint}>• We've received your order and started preparing it</Text>
-            <Text style={styles.bulletPoint}>• 3D printing takes 2 days, plus 3 days for shipping</Text>
-            <Text style={styles.bulletPoint}>• Estimated delivery: <Text style={styles.boldText}>September 24–28</Text></Text>
+            {isHatPurchase ? (
+              <>
+                <Text style={styles.bulletPoint}>• You've received 1 free custom token</Text>
+                <Text style={styles.bulletPoint}>• Create a custom token</Text>
+                <Text style={styles.bulletPoint}>• Attach an image or video for NFC launch</Text>
+                <Text style={styles.bulletPoint}>• Explore what others are making</Text>
+                
+                {/* Create Custom Token Button - Only for hat flow */}
+                <TouchableOpacity style={styles.createTokenButton} onPress={handleCreateCustomToken}>
+                  <Text style={styles.createTokenButtonText}>Create Custom Token</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={styles.bulletPoint}>• We've received your order and started preparing it</Text>
+                <Text style={styles.bulletPoint}>• 3D printing takes 2 days, plus 3 days for shipping</Text>
+                <Text style={styles.bulletPoint}>• Estimated delivery: <Text style={styles.boldText}>September 24–28</Text></Text>
+              </>
+            )}
           </View>
         </View>
 
@@ -47,7 +107,7 @@ export const OrderConfirmationScreen: React.FC = () => {
 
       {/* Back to Home Button */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.backToHomeButton} onPress={handleBackToHome}>
+        <TouchableOpacity onPress={handleBackToHome}>
           <Text style={styles.backToHomeButtonText}>Back to Home</Text>
         </TouchableOpacity>
       </View>
@@ -74,6 +134,23 @@ const styles = StyleSheet.create({
     color: '#34C759',
     marginBottom: 30,
     textAlign: 'center',
+  },
+  itemsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  itemImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+  },
+  plusSign: {
+    fontSize: 24,
+    color: '#666',
+    marginHorizontal: 15,
+    fontWeight: 'bold',
   },
   placeholderBox: {
     width: 120,
@@ -116,6 +193,20 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: '700',
   },
+  createTokenButton: {
+    backgroundColor: '#000',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 25,
+    alignItems: 'center',
+    marginTop: 20,
+    alignSelf: 'center',
+  },
+  createTokenButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   bottomSpacing: {
     height: 100,
   },
@@ -137,8 +228,9 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   backToHomeButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '400',
+    textDecorationLine: 'underline',
   },
 });

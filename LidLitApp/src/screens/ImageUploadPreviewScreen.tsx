@@ -40,7 +40,7 @@ export const ImageUploadPreviewScreen: React.FC = () => {
     // Navigate to final confirmation or order screen
     console.log('Use image pressed');
     setShowHatPreview(false);
-    navigation.navigate('TokenFinalization');
+    navigation.navigate('TokenFinalizationScreen');
   };
 
   const handleSelectFile = async () => {
